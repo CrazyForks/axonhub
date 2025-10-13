@@ -12,6 +12,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/user"
+	"github.com/looplj/axonhub/internal/objects"
 	"github.com/samber/lo"
 )
 
@@ -50,17 +51,17 @@ func (r *mutationResolver) UpdateMe(ctx context.Context, input UpdateMeInput) (*
 }
 
 // Me is the resolver for the me field.
-func (r *queryResolver) Me(ctx context.Context) (*UserInfo, error) {
+func (r *queryResolver) Me(ctx context.Context) (*objects.UserInfo, error) {
 	// Get current user from context
 	user, ok := contexts.GetUser(ctx)
 	if !ok || user == nil {
 		return nil, fmt.Errorf("user not found in context")
 	}
 
-	// Convert ent.Role to RoleInfo
-	userRoles := make([]*RoleInfo, len(user.Edges.Roles))
+	// Convert ent.Role to objects.RoleInfo
+	userRoles := make([]objects.RoleInfo, len(user.Edges.Roles))
 	for i, role := range user.Edges.Roles {
-		userRoles[i] = &RoleInfo{
+		userRoles[i] = objects.RoleInfo{
 			Code: role.Code,
 			Name: role.Name,
 		}
@@ -81,7 +82,23 @@ func (r *queryResolver) Me(ctx context.Context) (*UserInfo, error) {
 		}
 	}
 
-	return &UserInfo{
+	// Convert user projects to objects.UserProjectInfo
+	userProjects := make([]objects.UserProjectInfo, 0)
+	if user.Edges.ProjectUsers != nil {
+		for _, up := range user.Edges.ProjectUsers {
+			// Convert project roles to objects.RoleInfo
+			projectRoles := make([]objects.RoleInfo, 0)
+			// TODO: Load project-specific roles if needed
+
+			userProjects = append(userProjects, objects.UserProjectInfo{
+				ProjectID: objects.GUID{Type: "Project", ID: up.ProjectID},
+				Scopes:    up.Scopes,
+				Roles:     projectRoles,
+			})
+		}
+	}
+
+	return &objects.UserInfo{
 		Email:          user.Email,
 		FirstName:      user.FirstName,
 		LastName:       user.LastName,
@@ -90,6 +107,7 @@ func (r *queryResolver) Me(ctx context.Context) (*UserInfo, error) {
 		Avatar:         &user.Avatar,
 		Scopes:         lo.Keys(allScopes),
 		Roles:          userRoles,
+		Projects:       userProjects,
 	}, nil
 }
 

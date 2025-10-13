@@ -152,6 +152,8 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*ent.User, error
 	user, err := client.User.Query().
 		Where(user.IDEQ(id)).
 		WithRoles().
+		WithProjects().
+		WithProjectUsers().
 		Only(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)

@@ -93,12 +93,13 @@ func (h *AuthHandlers) SignIn(c *gin.Context) {
 			IsOwner:        user.IsOwner,
 			PreferLanguage: user.PreferLanguage,
 			Scopes:         user.Scopes,
-			Roles: lo.Map(user.Edges.Roles, func(role *ent.Role, _ int) objects.Role {
-				return objects.Role{
+			Roles: lo.Map(user.Edges.Roles, func(role *ent.Role, _ int) objects.RoleInfo {
+				return objects.RoleInfo{
 					Code: role.Code,
 					Name: role.Name,
 				}
 			}),
+			Projects: []objects.UserProjectInfo{},
 		},
 		Token: token,
 	}

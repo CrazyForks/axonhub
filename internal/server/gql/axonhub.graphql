@@ -74,11 +74,18 @@ type UserInfo {
   avatar: String
   scopes: [String!]!
   roles: [RoleInfo!]!
+  projects: [UserProjectInfo!]!
 }
 
 type RoleInfo {
   code: String!
   name: String!
+}
+
+type UserProjectInfo {
+  projectID: ID!
+  scopes: [String!]!
+  roles: [RoleInfo!]!
 }
 
 input TestChannelInput {
